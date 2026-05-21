@@ -1,0 +1,104 @@
+version: 2.1
+
+orbs:
+  macos: circleci/macos@2
+
+jobs:
+  build-and-test:
+    macos:
+      xcode: "15.2.0"
+    resource_class: macos.m1.medium.gen1
+    steps:
+      - checkout
+
+      - run:
+          name: Swift Version
+          command: swift --version && xcodebuild -version
+
+      - run:
+          name: Resolve Dependencies
+          command: swift package resolve
+
+      - run:
+          name: Build Debug
+          command: swift build 2>&1 | tee build-debug.log
+
+      - run:
+          name: Build Release
+          command: swift build -c release 2>&1 | tee build-release.log
+
+      - run:
+          name: Run Tests
+          command: swift test 2>&1 | tee test-results.log
+
+      - store_artifacts:
+          path: build-debug.log
+      - store_artifacts:
+          path: build-release.log
+      - store_artifacts:
+          path: test-results.log
+
+  lint:
+    macos:
+      xcode: "15.2.0"
+    resource_class: macos.m1.medium.gen1
+    steps:
+      - checkout
+
+      - run:
+          name: Install SwiftLint
+          command: brew install swiftlint
+
+      - run:
+          name: Run SwiftLint
+          command: swiftlint lint --reporter emoji || true
+
+  validate-structure:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+
+      - run:
+          name: Validate Project Structure
+          command: |
+            echo "=== Checking directories ==="
+            for dir in MacPulse/App MacPulse/Models MacPulse/ViewModels MacPulse/Views MacPulse/Services MacPulse/Utilities; do
+              if [ -d "$dir" ]; then
+                echo "OK: $dir"
+              else
+                echo "MISSING: $dir" && exit 1
+              fi
+            done
+
+            echo ""
+            echo "=== File counts ==="
+            echo "Models:     $(find MacPulse/Models -name '*.swift' | wc -l) files"
+            echo "Services:   $(find MacPulse/Services -name '*.swift' | wc -l) files"
+            echo "ViewModels: $(find MacPulse/ViewModels -name '*.swift' | wc -l) files"
+            echo "Views:      $(find MacPulse/Views -name '*.swift' | wc -l) files"
+            echo "Total:      $(find MacPulse -name '*.swift' | wc -l) Swift files"
+
+      - run:
+          name: Check Imports
+          command: |
+            echo "=== Import analysis ==="
+            grep -rh "^import " MacPulse/ --include="*.swift" | sort | uniq -c | sort -rn
+
+            echo ""
+            if grep -r "import UIKit" MacPulse/ --include="*.swift"; then
+              echo "ERROR: UIKit in macOS project!" && exit 1
+            else
+              echo "OK: No UIKit imports"
+            fi
+
+workflows:
+  build-test-lint:
+    jobs:
+      - validate-structure
+      - build-and-test:
+          requires:
+            - validate-structure
+      - lint:
+          requires:
+            - validate-structure
