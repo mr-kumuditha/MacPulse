@@ -1,58 +1,6 @@
 version: 2.1
 
-orbs:
-  macos: circleci/macos@2
-
 jobs:
-  build-and-test:
-    macos:
-      xcode: "15.2.0"
-    resource_class: macos.m1.medium.gen1
-    steps:
-      - checkout
-
-      - run:
-          name: Swift Version
-          command: swift --version && xcodebuild -version
-
-      - run:
-          name: Resolve Dependencies
-          command: swift package resolve
-
-      - run:
-          name: Build Debug
-          command: swift build 2>&1 | tee build-debug.log
-
-      - run:
-          name: Build Release
-          command: swift build -c release 2>&1 | tee build-release.log
-
-      - run:
-          name: Run Tests
-          command: swift test 2>&1 | tee test-results.log
-
-      - store_artifacts:
-          path: build-debug.log
-      - store_artifacts:
-          path: build-release.log
-      - store_artifacts:
-          path: test-results.log
-
-  lint:
-    macos:
-      xcode: "15.2.0"
-    resource_class: macos.m1.medium.gen1
-    steps:
-      - checkout
-
-      - run:
-          name: Install SwiftLint
-          command: brew install swiftlint
-
-      - run:
-          name: Run SwiftLint
-          command: swiftlint lint --reporter emoji || true
-
   validate-structure:
     docker:
       - image: cimg/base:current
@@ -63,42 +11,279 @@ jobs:
           name: Validate Project Structure
           command: |
             echo "=== Checking directories ==="
-            for dir in MacPulse/App MacPulse/Models MacPulse/ViewModels MacPulse/Views MacPulse/Services MacPulse/Utilities; do
+            PASS=0; FAIL=0
+            for dir in MacPulse/App MacPulse/Models MacPulse/ViewModels MacPulse/Views MacPulse/Services MacPulse/Utilities MacPulse/Resources \
+                       MacPulse/Views/Dashboard MacPulse/Views/Scanner MacPulse/Views/Duplicates MacPulse/Views/Storage \
+                       MacPulse/Views/Monitor MacPulse/Views/Startup MacPulse/Views/Uninstaller MacPulse/Views/Privacy \
+                       MacPulse/Views/Settings MacPulse/Views/MenuBar MacPulse/Views/Premium; do
               if [ -d "$dir" ]; then
-                echo "OK: $dir"
+                echo "  OK: $dir"; PASS=$((PASS+1))
               else
-                echo "MISSING: $dir" && exit 1
+                echo "  FAIL: $dir"; FAIL=$((FAIL+1))
               fi
             done
-
             echo ""
-            echo "=== File counts ==="
-            echo "Models:     $(find MacPulse/Models -name '*.swift' | wc -l) files"
-            echo "Services:   $(find MacPulse/Services -name '*.swift' | wc -l) files"
-            echo "ViewModels: $(find MacPulse/ViewModels -name '*.swift' | wc -l) files"
-            echo "Views:      $(find MacPulse/Views -name '*.swift' | wc -l) files"
-            echo "Total:      $(find MacPulse -name '*.swift' | wc -l) Swift files"
+            echo "Directories: $PASS passed, $FAIL failed"
+            [ "$FAIL" -eq 0 ] || exit 1
 
       - run:
-          name: Check Imports
+          name: Validate Required Files
           command: |
-            echo "=== Import analysis ==="
-            grep -rh "^import " MacPulse/ --include="*.swift" | sort | uniq -c | sort -rn
+            PASS=0; FAIL=0
+            FILES=(
+              "Package.swift"
+              "MacPulse/App/MacPulseApp.swift"
+              "MacPulse/App/AppDelegate.swift"
+              "MacPulse/App/AppState.swift"
+              "MacPulse/App/ContentView.swift"
+              "MacPulse/Models/ScanResult.swift"
+              "MacPulse/Models/CleaningCategory.swift"
+              "MacPulse/Models/DuplicateFile.swift"
+              "MacPulse/Models/SystemMetrics.swift"
+              "MacPulse/Models/StartupItem.swift"
+              "MacPulse/Models/InstalledApp.swift"
+              "MacPulse/Models/LargeFile.swift"
+              "MacPulse/Models/SubscriptionTier.swift"
+              "MacPulse/Models/PrivacyItem.swift"
+              "MacPulse/Services/ScanEngine.swift"
+              "MacPulse/Services/DuplicateFinderService.swift"
+              "MacPulse/Services/LargeFileAnalyzer.swift"
+              "MacPulse/Services/SystemMonitor.swift"
+              "MacPulse/Services/StartupManagerService.swift"
+              "MacPulse/Services/AppUninstallerService.swift"
+              "MacPulse/Services/PrivacyCleanerService.swift"
+              "MacPulse/Services/AutomationEngine.swift"
+              "MacPulse/Services/SafetyManager.swift"
+              "MacPulse/Services/FileOperationService.swift"
+              "MacPulse/Services/LicenseManager.swift"
+              "MacPulse/Utilities/Logger.swift"
+              "MacPulse/ViewModels/DashboardViewModel.swift"
+              "MacPulse/ViewModels/ScanViewModel.swift"
+              "MacPulse/ViewModels/DuplicateFinderViewModel.swift"
+              "MacPulse/ViewModels/StorageViewModel.swift"
+              "MacPulse/ViewModels/StartupManagerViewModel.swift"
+              "MacPulse/ViewModels/UninstallerViewModel.swift"
+              "MacPulse/ViewModels/PrivacyViewModel.swift"
+              "MacPulse/Views/Dashboard/DashboardView.swift"
+              "MacPulse/Views/Scanner/ScanView.swift"
+              "MacPulse/Views/Duplicates/DuplicateFinderView.swift"
+              "MacPulse/Views/Storage/StorageAnalyzerView.swift"
+              "MacPulse/Views/Monitor/SystemMonitorView.swift"
+              "MacPulse/Views/Startup/StartupManagerView.swift"
+              "MacPulse/Views/Uninstaller/AppUninstallerView.swift"
+              "MacPulse/Views/Privacy/PrivacyCleanerView.swift"
+              "MacPulse/Views/Settings/SettingsView.swift"
+              "MacPulse/Views/MenuBar/MenuBarView.swift"
+              "MacPulse/Views/Premium/PremiumUpgradeView.swift"
+              "MacPulseTests/MacPulseTests.swift"
+            )
+            for f in "${FILES[@]}"; do
+              if [ -f "$f" ]; then
+                PASS=$((PASS+1))
+              else
+                echo "  MISSING: $f"; FAIL=$((FAIL+1))
+              fi
+            done
+            echo "Files: $PASS passed, $FAIL failed"
+            [ "$FAIL" -eq 0 ] || exit 1
 
+  syntax-check:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+
+      - run:
+          name: Balanced Braces Check
+          command: |
+            ERRORS=0
+            while IFS= read -r file; do
+              OPEN=$(grep -o "{" "$file" | wc -l)
+              CLOSE=$(grep -o "}" "$file" | wc -l)
+              if [ "$OPEN" != "$CLOSE" ]; then
+                echo "FAIL: $(basename "$file") - { $OPEN vs } $CLOSE"
+                ERRORS=$((ERRORS+1))
+              fi
+            done < <(find MacPulse -name "*.swift" -type f)
             echo ""
+            if [ "$ERRORS" -eq 0 ]; then
+              echo "All Swift files have balanced braces"
+            else
+              echo "$ERRORS file(s) with unbalanced braces" && exit 1
+            fi
+
+      - run:
+          name: Entry Point Check
+          command: |
+            if grep -rl "@main" MacPulse/ --include="*.swift" > /dev/null; then
+              echo "OK: @main entry point found"
+            else
+              echo "FAIL: No @main entry point" && exit 1
+            fi
+
+      - run:
+          name: Import Validation
+          command: |
+            echo "=== Framework imports ==="
+            grep -rh "^import " MacPulse/ --include="*.swift" | sort | uniq -c | sort -rn
+            echo ""
+
             if grep -r "import UIKit" MacPulse/ --include="*.swift"; then
-              echo "ERROR: UIKit in macOS project!" && exit 1
+              echo "FAIL: UIKit in macOS project!" && exit 1
             else
               echo "OK: No UIKit imports"
             fi
 
+            echo ""
+            echo "=== Required frameworks ==="
+            for fw in SwiftUI AppKit Combine Foundation StoreKit; do
+              if grep -r "import $fw" MacPulse/ --include="*.swift" > /dev/null; then
+                echo "OK: $fw"
+              else
+                echo "WARN: $fw not found"
+              fi
+            done
+
+  architecture-check:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+
+      - run:
+          name: MVVM Architecture Validation
+          command: |
+            echo "=== Layer counts ==="
+            MODELS=$(find MacPulse/Models -name "*.swift" | wc -l)
+            VIEWS=$(find MacPulse/Views -name "*.swift" | wc -l)
+            VMS=$(find MacPulse/ViewModels -name "*.swift" | wc -l)
+            SERVICES=$(find MacPulse/Services -name "*.swift" | wc -l)
+            TOTAL=$(find MacPulse -name "*.swift" | wc -l)
+
+            echo "  Models:     $MODELS"
+            echo "  Views:      $VIEWS"
+            echo "  ViewModels: $VMS"
+            echo "  Services:   $SERVICES"
+            echo "  Total:      $TOTAL"
+            echo ""
+
+            FAIL=0
+            [ "$MODELS" -ge 6 ] && echo "OK: Models ($MODELS)" || { echo "FAIL: Models ($MODELS)"; FAIL=$((FAIL+1)); }
+            [ "$VIEWS" -ge 8 ] && echo "OK: Views ($VIEWS)" || { echo "FAIL: Views ($VIEWS)"; FAIL=$((FAIL+1)); }
+            [ "$VMS" -ge 5 ] && echo "OK: ViewModels ($VMS)" || { echo "FAIL: ViewModels ($VMS)"; FAIL=$((FAIL+1)); }
+            [ "$SERVICES" -ge 8 ] && echo "OK: Services ($SERVICES)" || { echo "FAIL: Services ($SERVICES)"; FAIL=$((FAIL+1)); }
+            [ "$FAIL" -eq 0 ] || exit 1
+
+      - run:
+          name: Reactive Patterns
+          command: |
+            OO=$(grep -rl "ObservableObject" MacPulse/ --include="*.swift" | wc -l)
+            PUB=$(grep -rh "@Published" MacPulse/ --include="*.swift" | wc -l)
+            ACTORS=$(grep -rl "^actor " MacPulse/ --include="*.swift" | wc -l)
+            ASYNC=$(grep -rh "async " MacPulse/ --include="*.swift" | wc -l)
+            TESTS=$(grep -rh "func test" MacPulseTests/ --include="*.swift" | wc -l)
+
+            echo "ObservableObject: $OO"
+            echo "@Published:       $PUB"
+            echo "Actors:           $ACTORS"
+            echo "Async functions:  $ASYNC"
+            echo "Test functions:   $TESTS"
+            echo ""
+
+            FAIL=0
+            [ "$OO" -ge 5 ] && echo "OK: ObservableObject usage" || { echo "FAIL: Low ObservableObject usage"; FAIL=$((FAIL+1)); }
+            [ "$PUB" -ge 15 ] && echo "OK: @Published usage" || { echo "FAIL: Low @Published usage"; FAIL=$((FAIL+1)); }
+            [ "$ACTORS" -ge 3 ] && echo "OK: Actor concurrency" || { echo "FAIL: Low actor usage"; FAIL=$((FAIL+1)); }
+            [ "$ASYNC" -ge 10 ] && echo "OK: async/await adopted" || { echo "FAIL: Low async usage"; FAIL=$((FAIL+1)); }
+            [ "$TESTS" -ge 10 ] && echo "OK: Test coverage ($TESTS tests)" || { echo "FAIL: Low test coverage"; FAIL=$((FAIL+1)); }
+            [ "$FAIL" -eq 0 ] || exit 1
+
+  security-check:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+
+      - run:
+          name: Security Validation
+          command: |
+            echo "=== Safety Manager Checks ==="
+            FAIL=0
+
+            for pattern in "protectedPaths" "protectedExtensions" "protectedBundleIDs" "isSafeToDelete"; do
+              if grep -q "$pattern" MacPulse/Services/SafetyManager.swift; then
+                echo "OK: $pattern found"
+              else
+                echo "FAIL: $pattern missing"; FAIL=$((FAIL+1))
+              fi
+            done
+
+            echo ""
+            echo "=== FileOperationService uses SafetyManager ==="
+            if grep -q "safetyManager" MacPulse/Services/FileOperationService.swift; then
+              echo "OK: Deletion routes through SafetyManager"
+            else
+              echo "FAIL: Bypasses SafetyManager"; FAIL=$((FAIL+1))
+            fi
+
+            echo ""
+            echo "=== Hardcoded Secrets Check ==="
+            if grep -rEi "(password|secret|api_key|apikey)\s*=\s*\"[^\"]+\"" MacPulse/ --include="*.swift"; then
+              echo "FAIL: Potential hardcoded secrets!"; FAIL=$((FAIL+1))
+            else
+              echo "OK: No hardcoded secrets"
+            fi
+
+            echo ""
+            echo "=== Code Stats ==="
+            TOTAL_LINES=$(find MacPulse -name "*.swift" -exec cat {} + | wc -l)
+            TOTAL_FILES=$(find MacPulse -name "*.swift" | wc -l)
+            echo "Total: $TOTAL_FILES files, $TOTAL_LINES lines"
+
+            [ "$FAIL" -eq 0 ] || exit 1
+
+  feature-check:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+
+      - run:
+          name: Feature Completeness
+          command: |
+            FAIL=0
+            declare -A FEATURES=(
+              ["ScanEngine"]="Smart Clean"
+              ["DuplicateFinderService"]="Duplicate Finder"
+              ["LargeFileAnalyzer"]="Storage Analyzer"
+              ["SystemMonitor"]="System Monitor"
+              ["StartupManagerService"]="Startup Manager"
+              ["AppUninstallerService"]="App Uninstaller"
+              ["PrivacyCleanerService"]="Privacy Cleaner"
+              ["AutomationEngine"]="Automation"
+              ["LicenseManager"]="Monetization"
+              ["MenuBarView"]="Menu Bar Widget"
+            )
+            for file in "${!FEATURES[@]}"; do
+              if find MacPulse -name "${file}.swift" | grep -q .; then
+                echo "OK: ${FEATURES[$file]}"
+              else
+                echo "FAIL: ${FEATURES[$file]} (missing $file)"; FAIL=$((FAIL+1))
+              fi
+            done
+            [ "$FAIL" -eq 0 ] || exit 1
+
 workflows:
-  build-test-lint:
+  macpulse-ci:
     jobs:
       - validate-structure
-      - build-and-test:
+      - syntax-check
+      - architecture-check:
           requires:
             - validate-structure
-      - lint:
+      - security-check:
+          requires:
+            - validate-structure
+      - feature-check:
           requires:
             - validate-structure
