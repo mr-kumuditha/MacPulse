@@ -1,0 +1,23 @@
+disabled_rules:
+  - trailing_whitespace
+  - line_length
+  - type_body_length
+  - file_length
+  - function_body_length
+
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+  - contains_over_filter_is_empty
+  - discouraged_optional_boolean
+  - first_where
+  - implicit_return
+  - modifier_order
+  - overridden_super_call
+  - sorted_first_last
+
+excluded:
+  - .build
+  - MacPulseTests
+
+reporter: xcode

@@ -1,0 +1,15 @@
+.DS_Store
+.build/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.swp
+*.swo
+*~
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+Pods/
+Carthage/Build/
+.swiftpm/
+Package.resolved

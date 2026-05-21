@@ -1,0 +1,172 @@
+name: MacPulse CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Manual trigger from GitHub UI
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: List available Xcode versions
+        run: ls /Applications | grep Xcode
+
+      - name: Select Xcode 15
+        run: |
+          XCODE_PATH=$(ls -d /Applications/Xcode_15*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$XCODE_PATH" ]; then
+            XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          fi
+          echo "Using: $XCODE_PATH"
+          sudo xcode-select -s "$XCODE_PATH"
+          swift --version
+          xcodebuild -version
+
+      - name: Resolve Dependencies
+        run: |
+          cd MacPulse
+          swift package resolve
+
+      - name: Build Debug
+        run: |
+          cd MacPulse
+          swift build 2>&1 | tee build-debug.log
+          echo "::notice::Debug build completed"
+
+      - name: Build Release
+        run: |
+          cd MacPulse
+          swift build -c release 2>&1 | tee build-release.log
+          echo "::notice::Release build completed"
+
+      - name: Run Tests
+        run: |
+          cd MacPulse
+          swift test 2>&1 | tee test-results.log
+          echo "::notice::Tests completed"
+
+      - name: Upload Build Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: MacPulse/build-*.log
+
+      - name: Upload Test Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: MacPulse/test-results.log
+
+  lint:
+    name: Lint
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint
+        run: |
+          cd MacPulse
+          swiftlint lint --reporter github-actions-logging || true
+
+  structure-check:
+    name: Project Structure Validation
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate project structure
+        run: |
+          cd MacPulse
+          echo "=== Checking required directories ==="
+          for dir in MacPulse/App MacPulse/Models MacPulse/ViewModels MacPulse/Views MacPulse/Services MacPulse/Utilities; do
+            if [ -d "$dir" ]; then
+              echo "OK: $dir"
+            else
+              echo "MISSING: $dir" && exit 1
+            fi
+          done
+
+          echo ""
+          echo "=== Checking required files ==="
+          REQUIRED_FILES=(
+            "Package.swift"
+            "MacPulse/App/MacPulseApp.swift"
+            "MacPulse/App/AppDelegate.swift"
+            "MacPulse/App/AppState.swift"
+            "MacPulse/App/ContentView.swift"
+            "MacPulse/Services/ScanEngine.swift"
+            "MacPulse/Services/SafetyManager.swift"
+            "MacPulse/Services/SystemMonitor.swift"
+            "MacPulse/Services/LicenseManager.swift"
+            "MacPulseTests/MacPulseTests.swift"
+          )
+          for f in "${REQUIRED_FILES[@]}"; do
+            if [ -f "$f" ]; then
+              echo "OK: $f"
+            else
+              echo "MISSING: $f" && exit 1
+            fi
+          done
+
+          echo ""
+          echo "=== File count by layer ==="
+          echo "Models:     $(find MacPulse/Models -name '*.swift' | wc -l | tr -d ' ') files"
+          echo "Services:   $(find MacPulse/Services -name '*.swift' | wc -l | tr -d ' ') files"
+          echo "ViewModels: $(find MacPulse/ViewModels -name '*.swift' | wc -l | tr -d ' ') files"
+          echo "Views:      $(find MacPulse/Views -name '*.swift' | wc -l | tr -d ' ') files"
+          echo "Total:      $(find MacPulse -name '*.swift' | wc -l | tr -d ' ') Swift files"
+
+      - name: Check for import consistency
+        run: |
+          cd MacPulse
+          echo "=== Imports used across project ==="
+          grep -rh "^import " MacPulse/ | sort | uniq -c | sort -rn
+
+          echo ""
+          echo "=== Checking no UIKit imports (macOS project) ==="
+          if grep -r "import UIKit" MacPulse/; then
+            echo "ERROR: UIKit found in macOS project!" && exit 1
+          else
+            echo "OK: No UIKit imports"
+          fi
+
+  release:
+    name: Release Build
+    needs: [build, lint, structure-check]
+    runs-on: macos-14
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          XCODE_PATH=$(ls -d /Applications/Xcode_15*.app 2>/dev/null | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE_PATH"
+
+      - name: Build Release Binary
+        run: |
+          cd MacPulse
+          swift build -c release
+
+      - name: Package Artifact
+        run: |
+          cd MacPulse/.build/release
+          zip -r ../../../MacPulse-${{ github.sha }}.zip MacPulse
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacPulse-release-${{ github.sha }}
+          path: MacPulse-*.zip
+          retention-days: 30
