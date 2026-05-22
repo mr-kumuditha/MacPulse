@@ -12,7 +12,7 @@ struct MenuBarView: View {
                 Text("MacPulse")
                     .fontWeight(.semibold)
                 Spacer()
-                Text("v1.0")
+                Text("v\(AppInfo.version)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

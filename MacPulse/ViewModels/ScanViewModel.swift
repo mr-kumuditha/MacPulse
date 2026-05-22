@@ -72,11 +72,8 @@ final class ScanViewModel: ObservableObject {
         let freedStr = ByteCountFormatter.string(fromByteCount: totalFreed, countStyle: .file)
         cleaningResult = "Cleaned \(totalDeleted) files, freed \(freedStr)"
 
-        // Reset scan results
-        categorySummaries = []
-        totalSize = 0
-        totalFiles = 0
-        phase = .idle
+        // Keep phase as complete so user sees the result message
+        phase = .complete
     }
 
     func toggleCategory(_ category: CleaningCategory) {

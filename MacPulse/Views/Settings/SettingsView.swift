@@ -172,11 +172,15 @@ struct SettingsView: View {
             Text("System Optimizer")
                 .foregroundStyle(.secondary)
 
-            Text("Version 1.0.0 (Build 1)")
+            Text("Version \(AppInfo.version) (Build \(AppInfo.build))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             Spacer()
+
+            Text("Developed by DevTharinda")
+                .font(.caption)
+                .fontWeight(.medium)
 
             Text("Copyright 2026 MacPulse. All rights reserved.")
                 .font(.caption2)

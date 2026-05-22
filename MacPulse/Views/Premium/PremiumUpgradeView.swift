@@ -92,7 +92,11 @@ struct PremiumUpgradeView: View {
             }
             .font(.callout)
             .foregroundStyle(.secondary)
-            .padding(.bottom, 16)
+
+            Text("by \(AppInfo.developer)")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 16)
         }
         .frame(width: 520, height: 640)
     }

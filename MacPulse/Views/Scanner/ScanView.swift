@@ -107,38 +107,64 @@ struct ScanView: View {
 
     private var scanResultsView: some View {
         VStack(spacing: 0) {
-            // Summary bar
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(viewModel.formattedTotalSize)
-                        .font(.title)
-                        .fontWeight(.bold)
-                    Text("\(viewModel.totalFiles) files found")
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-
-                if let message = viewModel.cleaningResult {
-                    Label(message, systemImage: "checkmark.circle.fill")
+            if viewModel.totalFiles == 0 && viewModel.cleaningResult == nil {
+                // No junk found
+                VStack(spacing: 16) {
+                    Spacer()
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 64))
                         .foregroundStyle(.green)
-                } else {
-                    VStack(alignment: .trailing) {
-                        Text("Selected: \(viewModel.formattedSelectedSize)")
-                            .font(.headline)
-                        Button {
-                            Task { await viewModel.clean() }
-                        } label: {
-                            Label("Clean Selected", systemImage: "trash")
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
+                    Text("Your Mac is clean!")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    Text("No junk files were found in the selected categories.")
+                        .foregroundStyle(.secondary)
+                    Button("Scan Again") {
+                        viewModel.phase = .idle
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .padding(.top, 8)
+                    Spacer()
+                }
+            } else {
+                // Summary bar
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(viewModel.formattedTotalSize)
+                            .font(.title)
+                            .fontWeight(.bold)
+                        Text("\(viewModel.totalFiles) files found")
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+
+                    if let message = viewModel.cleaningResult {
+                        VStack(spacing: 8) {
+                            Label(message, systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                            Button("Scan Again") {
+                                viewModel.phase = .idle
+                                viewModel.cleaningResult = nil
+                            }
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.red)
-                        .disabled(viewModel.isCleaningInProgress)
+                    } else {
+                        VStack(alignment: .trailing) {
+                            Text("Selected: \(viewModel.formattedSelectedSize)")
+                                .font(.headline)
+                            Button {
+                                Task { await viewModel.clean() }
+                            } label: {
+                                Label("Clean Selected", systemImage: "trash")
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.red)
+                            .disabled(viewModel.isCleaningInProgress || viewModel.selectedSize == 0)
+                        }
                     }
                 }
-            }
-            .padding(24)
+                .padding(24)
 
             Divider()
 
@@ -156,6 +182,7 @@ struct ScanView: View {
                 }
                 .padding(24)
             }
+            } // end else (results found)
         }
     }
 }

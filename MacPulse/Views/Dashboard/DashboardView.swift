@@ -24,9 +24,17 @@ struct DashboardView: View {
                 Text("Welcome to MacPulse")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                Text("Your Mac's health at a glance")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Text("v\(AppInfo.version)")
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.blue.opacity(0.15))
+                        .clipShape(Capsule())
+                    Text("by \(AppInfo.developer)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
             Spacer()
             Button {
