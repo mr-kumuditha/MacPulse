@@ -1,161 +1,317 @@
-# MacPulse - macOS System Optimizer
+<div align="center">
 
-A production-grade macOS system optimization suite built with Swift and SwiftUI.
+<img src="Icon/MacPlus.png" width="140" alt="MacPulse Logo"/>
+
+# MacPulse
+
+### Professional macOS System Optimizer
+
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/Ck1axcVK9MgG2Cxwm68c/5MNV9uX6gJpRGWHrFBi6bT/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/circleci/Ck1axcVK9MgG2Cxwm68c/5MNV9uX6gJpRGWHrFBi6bT)
+![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-blue?logo=apple)
+![Swift](https://img.shields.io/badge/Swift-5.9-orange?logo=swift)
+![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-blue?logo=swift)
+![License](https://img.shields.io/badge/license-Proprietary-red)
+![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
+
+**Clean. Optimize. Protect.** A production-grade macOS optimization suite that keeps your Mac running at peak performance.
+
+[**Download v1.0.0**](https://github.com/mr-kumuditha/MacPulse/releases/download/v1.0.0/MacPulse-v1.0.0.dmg) | [**View Release**](https://github.com/mr-kumuditha/MacPulse/releases/tag/v1.0.0) | [**Report Issue**](https://github.com/mr-kumuditha/MacPulse/issues)
+
+---
+
+</div>
+
+## Screenshots
+
+<div align="center">
+
+### Dashboard
+<img src="Assets/DashBoard.png" width="750" alt="MacPulse Dashboard"/>
+
+<br/>
+
+### Smart Clean
+<img src="Assets/Smartclean.png" width="750" alt="Smart Clean"/>
+
+<br/>
+
+### System Monitor
+<img src="Assets/Moniter.png" width="750" alt="System Monitor"/>
+
+</div>
+
+---
 
 ## Features
 
-### Free Tier
-- **Smart Clean** - Scan and remove cache files, temp files, logs, trash, and more
-- **Basic Monitoring** - Disk usage overview
+<table>
+<tr>
+<td width="50%">
 
-### Pro Tier
-- **Duplicate Finder** - SHA256-based duplicate detection with batch operations
-- **Storage Analyzer** - Visual disk breakdown and large file finder
-- **Real-time Monitor** - Live CPU, RAM, disk, and process monitoring
-- **Startup Manager** - Manage LaunchAgents, LaunchDaemons, and login items
-- **App Uninstaller** - Complete removal including preferences, caches, and containers
-- **Privacy Cleaner** - Browser history, cookies, cache, and session cleanup (Safari, Chrome, Firefox, Brave)
-- **Automation Engine** - Scheduled cleaning with customizable frequencies
+### Smart Clean
+- User & browser cache cleanup
+- Xcode DerivedData removal
+- Temporary files & system logs
+- Trash, broken downloads
+- Mail cache & app leftovers
+- iOS backup management
 
-## Requirements
+</td>
+<td width="50%">
 
-- macOS 13.0+
-- Xcode 15.0+
-- Swift 5.9+
+### Duplicate Finder
+- SHA-256 hash-based detection
+- Smart auto-select (keeps originals)
+- Batch delete with size preview
+- Wasted space calculator
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### Real-time System Monitor
+- Live CPU, RAM, disk gauges
+- Memory pressure analysis
+- CPU & memory history charts
+- Top processes by resource usage
+
+</td>
+<td width="50%">
+
+### Storage Analyzer
+- Visual disk usage breakdown
+- Large file scanner (configurable threshold)
+- Sort by size, date, or name
+- Reveal in Finder integration
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### Privacy Cleaner
+- Safari, Chrome, Firefox, Brave
+- Browsing history & cookies
+- Cache & session data
+- Selective cleaning per browser
+
+</td>
+<td width="50%">
+
+### App Uninstaller
+- Complete app removal
+- Detects preferences, caches, containers
+- Leftover file scanner
+- App size analysis
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### Startup Manager
+- LaunchAgents & LaunchDaemons
+- Enable/disable with one toggle
+- Filter by type
+- Protected system service detection
+
+</td>
+<td width="50%">
+
+### Automation Engine
+- Scheduled cleaning (daily/weekly/monthly)
+- Smart notifications
+- Configurable categories per schedule
+- Background operation
+
+</td>
+</tr>
+</table>
+
+---
+
+## Installation
+
+### Quick Install
+
+1. **[Download MacPulse-v1.0.0.dmg](https://github.com/mr-kumuditha/MacPulse/releases/download/v1.0.0/MacPulse-v1.0.0.dmg)** (3.3 MB)
+2. Open the DMG file
+3. Drag **MacPulse** to **Applications**
+4. First launch: Right-click > **Open** (to bypass Gatekeeper)
+
+### System Requirements
+
+| Requirement | Minimum |
+|---|---|
+| **macOS** | 13.0 (Ventura) or later |
+| **Processor** | Intel x86_64 |
+| **Disk Space** | 50 MB |
+| **RAM** | 4 GB recommended |
+
+---
 
 ## Architecture
 
+Built with enterprise-grade architecture following Apple's best practices.
+
 ```
 MacPulse/
-├── App/                    # App entry point, delegate, state
-├── Models/                 # Data models and enums
-├── ViewModels/             # MVVM view models
-├── Views/                  # SwiftUI views
-│   ├── Dashboard/
-│   ├── Scanner/
-│   ├── Duplicates/
-│   ├── Storage/
-│   ├── Monitor/
-│   ├── Startup/
-│   ├── Uninstaller/
-│   ├── Privacy/
-│   ├── Settings/
-│   ├── MenuBar/
-│   └── Premium/
-├── Services/               # Backend services
-│   ├── ScanEngine          # File scanning engine
-│   ├── DuplicateFinderService
-│   ├── LargeFileAnalyzer
-│   ├── SystemMonitor       # CPU, RAM, disk monitoring
-│   ├── StartupManagerService
-│   ├── AppUninstallerService
-│   ├── PrivacyCleanerService
-│   ├── AutomationEngine
-│   ├── SafetyManager       # File protection system
-│   ├── FileOperationService
-│   └── LicenseManager      # StoreKit 2 integration
-├── Utilities/
-│   └── Logger
-└── Resources/
+├── App/                          # Entry point, AppDelegate, AppState
+├── Models/                       # 9 data models
+│   ├── ScanResult                # Scan results & categories
+│   ├── SystemMetrics             # CPU, RAM, disk metrics
+│   ├── DuplicateFile             # Duplicate detection models
+│   └── ...
+├── ViewModels/                   # 7 MVVM view models
+├── Views/                        # 11 SwiftUI views
+│   ├── Dashboard/                # Main overview
+│   ├── Scanner/                  # Smart clean interface
+│   ├── Monitor/                  # Real-time system monitor
+│   ├── Premium/                  # Subscription UI
+│   └── ...
+├── Services/                     # 11 backend services
+│   ├── ScanEngine (Actor)        # Async file scanning
+│   ├── SystemMonitor             # Mach kernel APIs
+│   ├── SafetyManager             # File protection layer
+│   ├── DuplicateFinderService    # SHA-256 hashing
+│   ├── LicenseManager            # StoreKit 2
+│   └── ...
+└── Utilities/
+    ├── Logger                    # os.log unified logging
+    └── AppInfo                   # Version & branding
 ```
+
+### Tech Stack
+
+| Component | Technology |
+|---|---|
+| **Language** | Swift 5.9 |
+| **UI Framework** | SwiftUI + AppKit |
+| **Architecture** | MVVM |
+| **Concurrency** | Swift Actors, async/await |
+| **Reactive** | Combine |
+| **Monitoring** | Mach kernel APIs, sysctl |
+| **Hashing** | CommonCrypto (SHA-256) |
+| **Payments** | StoreKit 2 |
+| **Logging** | os.log (unified logging) |
 
 ### Design Patterns
 - **MVVM** with `@StateObject` / `@ObservedObject`
-- **Actors** for thread-safe services (`ScanEngine`, `FileOperationService`)
-- **Combine** for reactive data binding
-- **Async/await** throughout
-- **Dependency injection** via environment objects
+- **Swift Actors** for thread-safe services (7 actors)
+- **Combine** for reactive data flow
+- **async/await** throughout (38+ async functions)
+- **Dependency injection** via SwiftUI environment objects
 
-## Building
+---
 
-```bash
-cd MacPulse
-swift build
-```
+## CI/CD Pipeline
 
-### Release Build
-```bash
-swift build -c release
-```
+Automated testing via **CircleCI** on every push to `main`.
 
-### Run Tests
-```bash
-swift test
-```
+<div align="center">
+<img src="Assets/circleci reort.png" width="750" alt="CircleCI Pipeline"/>
+</div>
 
-## Xcode Project Setup
+### Pipeline Jobs
 
-To build as a native macOS app with full capabilities:
+| Job | Description | Status |
+|---|---|---|
+| **validate-structure** | Verifies 18 directories + 44 required files | Passing |
+| **syntax-check** | Balanced braces, imports, entry point validation | Passing |
+| **architecture-check** | MVVM layers, actors, async/await, reactive patterns | Passing |
+| **security-check** | SafetyManager protections, no hardcoded secrets | Passing |
+| **feature-check** | All 10 core features present and accounted for | Passing |
 
-1. Open Xcode and create a new macOS App project named "MacPulse"
-2. Copy all source files from the `MacPulse/` directory into the Xcode project
-3. Set deployment target to macOS 13.0
-4. Add required entitlements (see below)
-5. Configure signing with your Developer ID
-
-### Entitlements
-
-Create `MacPulse.entitlements`:
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>com.apple.security.app-sandbox</key>
-    <false/>
-    <key>com.apple.security.files.user-selected.read-write</key>
-    <true/>
-    <key>com.apple.security.files.downloads.read-write</key>
-    <true/>
-</dict>
-</plist>
-```
-
-Note: Full disk access features require the app to run outside the sandbox or with appropriate temporary entitlements during development. For App Store distribution, specific capabilities must be requested.
-
-## Code Signing & Notarization
-
-```bash
-# Sign with Developer ID
-codesign --deep --force --verify --verbose \
-    --sign "Developer ID Application: Your Name (TEAM_ID)" \
-    --options runtime \
-    MacPulse.app
-
-# Create DMG
-hdiutil create -volname "MacPulse" -srcfolder MacPulse.app \
-    -ov -format UDZO MacPulse.dmg
-
-# Notarize
-xcrun notarytool submit MacPulse.dmg \
-    --apple-id "your@email.com" \
-    --team-id "TEAM_ID" \
-    --password "@keychain:AC_PASSWORD" \
-    --wait
-
-# Staple
-xcrun stapler staple MacPulse.dmg
-```
+---
 
 ## Security
 
-MacPulse implements multiple layers of protection:
+MacPulse implements a multi-layer safety system to protect your Mac:
 
-- **Protected path whitelist** - System files, keychains, SSH keys, and user documents are never deleted
-- **Protected file extensions** - `.keychain`, `.pem`, `.key`, `.cert`, `.p12` files are blocked
-- **Running app detection** - Cannot delete bundles of currently running applications
-- **Protected system services** - Critical macOS daemons cannot be disabled
-- **Deletion logging** - All file operations are logged with timestamps
-- **Batch validation** - Every file in a deletion batch is individually verified before removal
+| Protection | Description |
+|---|---|
+| **Protected Paths** | System files, keychains, SSH keys, user documents — never deleted |
+| **Protected Extensions** | `.keychain`, `.pem`, `.key`, `.cert`, `.p12` files blocked |
+| **Running App Detection** | Cannot delete bundles of currently running applications |
+| **System Service Guard** | Critical macOS daemons (Finder, Dock, loginwindow) protected |
+| **Deletion Audit Log** | Every file operation logged with timestamps and sizes |
+| **Batch Validation** | Each file individually verified through SafetyManager before removal |
+
+---
+
+## Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/mr-kumuditha/MacPulse.git
+cd MacPulse
+
+# Build (requires Xcode Command Line Tools)
+SDK=$(xcrun --sdk macosx --show-sdk-path)
+xcrun swiftc -sdk "$SDK" -target x86_64-apple-macos13.0 -O -parse-as-library \
+  -framework SwiftUI -framework AppKit -framework Combine \
+  -framework StoreKit -framework IOKit \
+  $(find MacPulse -name "*.swift" -type f -print0 | xargs -0 echo) \
+  -o MacPulse.bin
+
+# Run local validation (no Xcode needed)
+bash validate.sh
+```
+
+---
+
+## Project Stats
+
+| Metric | Value |
+|---|---|
+| **Swift Files** | 44 |
+| **Lines of Code** | 5,200+ |
+| **Models** | 9 |
+| **Views** | 11 |
+| **ViewModels** | 7 |
+| **Services** | 11 |
+| **Unit Tests** | 19 |
+| **Actors** | 7 |
+| **@Published Properties** | 58 |
+| **Async Functions** | 38+ |
+
+---
 
 ## Monetization
 
-Implements StoreKit 2 with:
-- Free tier with basic scanning
-- 7-day free trial
-- Monthly ($4.99) and yearly ($29.99) subscription options
-- Receipt validation and entitlement checking
+| Tier | Price | Features |
+|---|---|---|
+| **Free** | $0 | Smart Clean, Basic Monitoring |
+| **Trial** | 7 days free | All Pro features |
+| **Pro Monthly** | $4.99/mo | Everything |
+| **Pro Yearly** | $29.99/yr | Everything (save 50%) |
 
-## License
+Powered by **StoreKit 2** with receipt validation and entitlement management.
 
-Proprietary - All rights reserved.
+---
+
+## Roadmap
+
+- [ ] Apple Silicon (ARM64) native build
+- [ ] Network traffic monitoring
+- [ ] Temperature sensor integration (SMC)
+- [ ] App Store submission
+- [ ] Sparkle auto-update framework
+- [ ] Localization (multi-language support)
+
+---
+
+<div align="center">
+
+## Developed by DevTharinda
+
+**MacPulse** — Keeping your Mac at peak performance.
+
+[![GitHub](https://img.shields.io/badge/GitHub-mr--kumuditha-181717?logo=github)](https://github.com/mr-kumuditha)
+
+Copyright 2026 MacPulse. All rights reserved.
+
+[**Download MacPulse v1.0.0**](https://github.com/mr-kumuditha/MacPulse/releases/download/v1.0.0/MacPulse-v1.0.0.dmg)
+
+</div>
