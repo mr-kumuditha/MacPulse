@@ -11,6 +11,7 @@ final class ScanViewModel: ObservableObject {
     @Published var isCleaningInProgress = false
     @Published var cleaningResult: String?
     @Published var selectedCategories: Set<CleaningCategory> = Set(CleaningCategory.allCases)
+    private var scanComplete = false
 
     var formattedTotalSize: String {
         ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file)
@@ -33,21 +34,24 @@ final class ScanViewModel: ObservableObject {
         totalSize = 0
         totalFiles = 0
         cleaningResult = nil
+        scanComplete = false
 
         let summaries = await ScanEngine.shared.scanAll(
             categories: Array(selectedCategories)
         ) { category, prog in
             Task { @MainActor [weak self] in
-                self?.phase = .scanning(category: category, progress: prog)
-                self?.progress = prog
+                guard let self, !self.scanComplete else { return }
+                self.phase = .scanning(category: category, progress: prog)
+                self.progress = prog
             }
         }
 
+        scanComplete = true
         categorySummaries = summaries
         totalSize = summaries.reduce(0) { $0 + $1.totalSize }
         totalFiles = summaries.reduce(0) { $0 + $1.fileCount }
-        phase = .complete
         progress = 1.0
+        phase = .complete
     }
 
     func clean() async {
@@ -72,7 +76,6 @@ final class ScanViewModel: ObservableObject {
         let freedStr = ByteCountFormatter.string(fromByteCount: totalFreed, countStyle: .file)
         cleaningResult = "Cleaned \(totalDeleted) files, freed \(freedStr)"
 
-        // Keep phase as complete so user sees the result message
         phase = .complete
     }
 
