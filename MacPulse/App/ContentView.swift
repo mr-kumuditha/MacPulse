@@ -11,6 +11,26 @@ struct ContentView: View {
         } detail: {
             detailView
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .toolbar {
+                    ToolbarItem(placement: .automatic) {
+                        HStack(spacing: 6) {
+                            Text("MacPulse")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                            Text("v\(AppInfo.version)")
+                                .font(.caption)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(.blue.opacity(0.15))
+                                .clipShape(Capsule())
+                            Text("|")
+                                .foregroundStyle(.quaternary)
+                            Text("by \(AppInfo.developer)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
         }
         .onReceive(NotificationCenter.default.publisher(for: .startSmartScan)) { _ in
             appState.selectedNavigation = .smartClean
@@ -63,6 +83,25 @@ struct SidebarView: View {
             .padding(.vertical, 2)
         }
         .listStyle(.sidebar)
+        .safeAreaInset(edge: .top) {
+            // Brand header
+            VStack(spacing: 4) {
+                HStack(spacing: 6) {
+                    Image(systemName: "bolt.shield.fill")
+                        .font(.title3)
+                        .foregroundStyle(.blue.gradient)
+                    Text("MacPulse")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                }
+                Text("\(AppInfo.copyright)")
+                    .font(.system(size: 8))
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(.ultraThinMaterial)
+        }
         .safeAreaInset(edge: .bottom) {
             if !licenseManager.isPremium {
                 upgradeButton
