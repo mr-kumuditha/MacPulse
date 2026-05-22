@@ -3,7 +3,7 @@ import Foundation
 struct DuplicateGroup: Identifiable {
     let id = UUID()
     let hash: String
-    let files: [DuplicateFile]
+    var files: [DuplicateFile]
     let fileSize: Int64
 
     var wastedSpace: Int64 {

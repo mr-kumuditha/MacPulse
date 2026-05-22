@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 
 final class SafetyManager {
     static let shared = SafetyManager()

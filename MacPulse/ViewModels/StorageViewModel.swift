@@ -39,8 +39,8 @@ final class StorageViewModel: ObservableObject {
 
         async let files = LargeFileAnalyzer.shared.findLargeFiles(
             minimumSize: Int64(minimumSizeMB * 1024 * 1024)
-        ) { [weak self] count in
-            Task { @MainActor in
+        ) { count in
+            Task { @MainActor [weak self] in
                 self?.filesFound = count
             }
         }

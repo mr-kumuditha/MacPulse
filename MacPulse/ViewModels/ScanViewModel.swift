@@ -36,8 +36,8 @@ final class ScanViewModel: ObservableObject {
 
         let summaries = await ScanEngine.shared.scanAll(
             categories: Array(selectedCategories)
-        ) { [weak self] category, prog in
-            Task { @MainActor in
+        ) { category, prog in
+            Task { @MainActor [weak self] in
                 self?.phase = .scanning(category: category, progress: prog)
                 self?.progress = prog
             }

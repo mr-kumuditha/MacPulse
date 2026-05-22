@@ -85,6 +85,7 @@ final class AutomationEngine: ObservableObject {
                 totalFreed += result.freedBytes
             }
 
+            let freedAmount = totalFreed
             await MainActor.run {
                 schedules[scheduleIndex].lastRun = Date()
                 schedules[scheduleIndex].nextRun = Date().addingTimeInterval(
@@ -93,7 +94,7 @@ final class AutomationEngine: ObservableObject {
                 saveSchedules()
                 isRunning = false
 
-                sendNotification(freedBytes: totalFreed)
+                sendNotification(freedBytes: freedAmount)
             }
         }
     }

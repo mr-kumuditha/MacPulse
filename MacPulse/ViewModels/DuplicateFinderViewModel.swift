@@ -24,8 +24,8 @@ final class DuplicateFinderViewModel: ObservableObject {
 
         let found = await DuplicateFinderService.shared.findDuplicates(
             in: searchDirectories
-        ) { [weak self] newPhase in
-            Task { @MainActor in
+        ) { newPhase in
+            Task { @MainActor [weak self] in
                 self?.phase = newPhase
             }
         }
